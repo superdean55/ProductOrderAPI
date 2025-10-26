@@ -5,6 +5,7 @@ export default (sequelize) => {
   class Order extends Model {
     static associate(models) {
         Order.belongsTo(models.User,{ foreignKey: 'userId'});
+        Order.hasMany(models.OrderItem, { foreignKey: "orderId" });
     }
   }
   Order.init(
