@@ -3,7 +3,9 @@ import sequelize from "../config/database.js";
 
 export default (sequelize) => {
   class Product extends Model {
-    static associate(models) {}
+    static associate(models) {
+        Product.hasMany(models.OrderItem, { foreignKey: "productId" });
+    }
   }
 
   Product.init(

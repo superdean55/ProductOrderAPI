@@ -4,8 +4,8 @@ import sequelize from "../config/database.js";
 export default (sequelize) => {
   class Order extends Model {
     static associate(models) {
-        Order.belongsTo(models.User,{ foreignKey: 'userId'});
-        Order.hasMany(models.OrderItem, { foreignKey: "orderId" });
+        Order.hasMany(models.OrderItem, { foreignKey: "orderId", onDelete: "CASCADE" });
+Order.belongsTo(models.User, { foreignKey: "userId" });
     }
   }
   Order.init(

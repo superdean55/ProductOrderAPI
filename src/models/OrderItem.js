@@ -4,7 +4,7 @@ export default (sequelize) => {
   class OrderItem extends Model {
     static associate(models) {
       OrderItem.belongsTo(models.Order, { foreignKey: "orderId" });
-      OrderItem.belongsTo(models.Product, { foreignKey: "productId" });
+OrderItem.belongsTo(models.Product, { foreignKey: "productId" });
     }
   }
 
