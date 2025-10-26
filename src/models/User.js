@@ -4,7 +4,7 @@ import sequelize from "../config/database.js";
 export default (sequelize) => {
   class User extends Model {
     static associate(models) {
-        User.hasMany(models.Order, { foreignKey: "userId", onDelete: "CASCADE" });
+      User.hasMany(models.Order, { foreignKey: "userId", onDelete: "CASCADE" });
     }
   }
   User.init(
@@ -44,6 +44,10 @@ export default (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue: null,
+      },
+      tokenVersion: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
       },
     },
     {
