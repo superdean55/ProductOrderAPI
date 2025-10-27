@@ -1,5 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../middleware/auth.js";
+import { isAdminMiddleware } from "../middleware/isAdminMiddleware.js";
 import {
   createProduct,
   getAllProducts,
@@ -14,10 +15,22 @@ import {
 
 const router = express.Router();
 
-router.post("/", authMiddleware, createProductValidation, createProduct);
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
-router.put("/:id", authMiddleware, updateProductValidation, updateProduct);
-router.delete("/:id", authMiddleware, deleteProduct);
+router.post(
+  "/",
+  authMiddleware,
+  isAdminMiddleware,
+  createProductValidation,
+  createProduct
+);
+router.put(
+  "/:id",
+  authMiddleware,
+  isAdminMiddleware,
+  updateProductValidation,
+  updateProduct
+);
+router.delete("/:id", authMiddleware, isAdminMiddleware, deleteProduct);
 
 export default router;

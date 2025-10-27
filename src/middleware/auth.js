@@ -31,6 +31,7 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ message: "Token expired" });
     }
 
+    req.user = user;
     req.userId = user.id;
     console.log("✅ Middleware passed, userId set:", req.userId);
 
