@@ -4,6 +4,7 @@ import db from "./models/index.js";
 import userRoutes from "./routes/user.js";
 import productRoutes from "./routes/product.js"
 import orderRoutes from "./routes/order.js";
+import orderItemRoutes from "./routes/orderItem.js"
 
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/order-items", orderItemRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "E-commerce API is running!" });
