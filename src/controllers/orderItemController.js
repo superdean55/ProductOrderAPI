@@ -1,6 +1,6 @@
 import db from "../models/index.js";
 import { validationResult } from "express-validator";
-import recalculateOrderTotal from "../helpers/recalculateOrderTotal.js";
+import { recalculateOrderTotal } from "../helpers/recalculateOrderTotal.js";
 
 const { OrderItem, Product, Order } = db;
 
@@ -64,8 +64,8 @@ export const updateOrderItem = async (req, res) => {
 
     if (quantity) orderItem.quantity = quantity;
     await orderItem.save();
-
-    await recalculateOrderTotal(item.orderId);
+    console.log("✅ Order item updated successfully");
+    await recalculateOrderTotal(orderItem.orderId);
 
     res.json({ message: "Order item updated successfully", orderItem });
   } catch (err) {
@@ -88,7 +88,7 @@ export const deleteOrderItem = async (req, res) => {
     }
 
     await orderItem.destroy();
-    await recalculateOrderTotal(item.orderId);
+    await recalculateOrderTotal(orderItem.orderId);
     res.json({ message: "Order item deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
