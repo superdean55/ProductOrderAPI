@@ -1,5 +1,5 @@
 import express from "express";
-import { authMiddleware } from "../middleware/auth.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 import { isAdminMiddleware } from "../middleware/isAdminMiddleware.js";
 import {
   createProduct,
