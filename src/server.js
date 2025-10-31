@@ -6,6 +6,7 @@ import userRoutes from "./routes/user.js";
 import productRoutes from "./routes/product.js"
 import orderRoutes from "./routes/order.js";
 import orderItemRoutes from "./routes/orderItem.js"
+import { errorHandler } from "./middleware/errorHandler.js";
 
 
 
@@ -22,7 +23,7 @@ app.use("/api/order-items", orderItemRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "E-commerce API is running!" });
 });
-
+app.use(errorHandler);
 try {
   await db.sequelize.authenticate();
   console.log("✅ Connected to PostgreSQL");

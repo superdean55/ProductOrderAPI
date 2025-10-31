@@ -1,21 +1,19 @@
-import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
+import {logger} from "../utils/logger.js";
+import { ApiError } from "../middleware/errorHandler.js"; 
 
 const { User } = db;
 
-export const register = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
+export const register = async (req, res, next ) => {
   const { username, email, password } = req.body;
 
   try {
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser)
-      return res.status(400).json({ message: "Email already in use" });
+    if (existingUser) {
+      throw new ApiError(400, "Email already in use");
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
@@ -29,46 +27,48 @@ export const register = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+    logger.info(`User registered: ${email}`);
     res.status(201).json({ user: { id: user.id, username, email }, token });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    logger.error("Registration error:", err);
+    next(err);
   }
 };
 
-export const login = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
+export const login = async (req, res, next) => {
+  
   const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) throw new ApiError(400, "Invalid credentials");
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) throw new ApiError(400, "Invalid credentials");
 
     const token = jwt.sign(
       { id: user.id, tokenVersion: user.tokenVersion },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+    logger.info(`User logged in: ${email}`);
     res.json({ user: { id: user.id, username: user.username, email }, token });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    logger.error("Login error:", err);
+    next(err);
   }
 };
 
-export const logout = async (req, res) => {
+export const logout = async (req, res, next) => {
   try {
     const user = await db.User.findByPk(req.userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) throw new ApiError(404, "User not found");
     user.tokenVersion++;
     await user.save();
+    logger.info(`User logged out: ${user.email}`);
     res.json({ message: "User logged out successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    logger.error("Logout error:", err);
+    next(err);
   }
 };

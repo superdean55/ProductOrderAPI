@@ -1,18 +1,22 @@
-import { body } from "express-validator";
+import Joi from "joi";
 
-export const registerValidator = [
-  body("username")
-    .notEmpty()
-    .withMessage("Username is required")
-    .isLength({ min: 3 })
-    .withMessage("Username must be at least 3 characters"),
-  body("email").isEmail().withMessage("Invalid email format"),
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters"),
-];
+export const registerSchema = Joi.object({
+  username: Joi.string().min(3).required().messages({
+    "string.base": "Username must be a string",
+    "string.min": "Username must be at least 3 characters",
+    "any.required": "Username is required",
+  }),
+  email: Joi.string().email().required().messages({
+    "string.email": "Invalid email format",
+    "any.required": "Email is required",
+  }),
+  password: Joi.string().min(6).required().messages({
+    "string.min": "Password must be at least 6 characters",
+    "any.required": "Password is required",
+  }),
+});
 
-export const loginValidator = [
-  body("email").isEmail().withMessage("Invalid email format"),
-  body("password").notEmpty().withMessage("Password is required"),
-];
+export const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
