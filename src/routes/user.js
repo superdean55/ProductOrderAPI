@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  getProfile,
+  getUser,
   updateUser,
   deleteUser,
 } from "../controllers/userController.js";
@@ -11,7 +11,7 @@ import {
 
 const router = express.Router();
 
-router.get("/me", authMiddleware, getProfile);
+router.get("/me", authMiddleware, getUser);
 router.put("/me", authMiddleware, updateUserValidator, updateUser);
 router.delete("/me", authMiddleware, deleteUser);
 

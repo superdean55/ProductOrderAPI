@@ -1,11 +1,12 @@
 import { validationResult } from "express-validator";
 import db from "../models/index.js";
 
-const Product = db.Product;
+const { Product } = db;
 
 export const createProduct = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
 
   try {
     const { name, description, price, stock, imageId, imageUrl } = req.body;
@@ -46,7 +47,8 @@ export const getProductById = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
 
   try {
     const product = await Product.findByPk(req.params.id);
@@ -68,7 +70,6 @@ export const updateProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 export const deleteProduct = async (req, res) => {
   try {

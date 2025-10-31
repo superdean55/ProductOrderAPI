@@ -1,15 +1,14 @@
 import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import db from "../models/index.js";
 
-const User = db.User;
+const { User } = db;
 
-
-
-export const getProfile = async (req, res) => {
+export const getUser = async (req, res) => {
   try {
-    const user = await User.findByPk(req.userId, { attributes: { exclude: ["password"] } });
+    const user = await User.findByPk(req.userId, {
+      attributes: { exclude: ["password"] },
+    });
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
@@ -19,7 +18,8 @@ export const getProfile = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
 
   const userId = req.userId;
   const { username, email, password } = req.body;
@@ -63,4 +63,3 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
