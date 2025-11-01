@@ -1,16 +1,19 @@
+import { logger } from "../utils/logger.js";
+import { APIError } from "../utils/APIError.js";
+
 export const isAdminMiddleware = (req, res, next) => {
   try {
-    console.log('❌❌❌ user_role: ',req.user);
     if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return next(new APIError("Unauthorized", 401))
     }
     
     if (req.user.role !== "ADMIN") {
-      return res.status(403).json({ message: "Access denied: Admins only" });
+      return next(new APIError("Access denied: Admins only", 403));
     }
 
     next();
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    logger.error("isAdminMiddleware error: " + err.message, { stack: err.stack });
+    return next(err);
   }
 };

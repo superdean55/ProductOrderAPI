@@ -1,44 +1,35 @@
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
+import { APIError } from "../utils/APIError.js"
+import { logger } from "../utils/logger.js";
 
 export const authMiddleware = async (req, res, next) => {
-  console.log("🔹 Auth middleware invoked");
-
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    console.log("❌ No authorization header found");
-    return res.status(401).json({ message: "No token provided" });
+    return next(new APIError("No token provided", 401));
   }
 
   const token = authHeader.split(" ")[1];
-  console.log("🔹 Token extracted:", token);
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("🔹 Token decoded:", decoded);
 
     const user = await db.User.findByPk(decoded.id);
     if (!user) {
-      console.log(`❌ No user found with ID: ${decoded.id}`);
-      return res.status(401).json({ message: "User not found" });
+      return next(new APIError("User not found", 401));
     }
-    console.log("🔹 User found:", user.username, "Token version:", user.tokenVersion);
 
     if (decoded.tokenVersion !== user.tokenVersion) {
-      console.log(
-        `❌ Token version mismatch: tokenVersion=${decoded.tokenVersion}, user.tokenVersion=${user.tokenVersion}`
-      );
-      return res.status(401).json({ message: "Token expired" });
+     
+      return next(new APIError("Token expired", 401));
     }
 
     req.user = user;
     req.userId = user.id;
-    console.log("✅ Middleware passed, userId set:", req.userId);
 
     next();
   } catch (err) {
-    console.log("❌ Token verification failed:", err.message);
-    res.status(401).json({ message: "Invalid token" });
+    logger.error("Auth middleware error: " + err.message, { stack: err.stack });
+    return next(new APIError("Invalid token", 401));
   }
 };
 
