@@ -6,6 +6,8 @@ import userRoutes from "./routes/user.js";
 import productRoutes from "./routes/product.js"
 import orderRoutes from "./routes/order.js";
 import orderItemRoutes from "./routes/orderItem.js"
+import userImagesRoutes from "./routes/userImageRoutes.js";
+
 import { errorHandler } from "./middleware/errorHandler.js";
 
 
@@ -16,6 +18,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/users", userImagesRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/order-items", orderItemRoutes);
