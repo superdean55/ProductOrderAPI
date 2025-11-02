@@ -10,19 +10,15 @@ export const uploadToCloudinary = async (buffer, options = {}) => {
         { ...options, folder },
         (error, result) => {
           if (error) {
-            logger.error("Cloudinary upload error: " + error.message);
             return reject(new APIError("Image upload failed", 500));
           }
-          logger.info(`Image uploaded to Cloudinary: ${result.public_id}`);
+          
           resolve(result);
         }
       );
       uploadStream.end(buffer);
     });
   } catch (err) {
-    logger.error("Unexpected upload error: " + err.message, {
-      stack: err.stack,
-    });
     throw new APIError("Unexpected error uploading image", 500);
   }
 };
@@ -32,7 +28,6 @@ export const deleteFromCloudinary = async (publicId) => {
     return await new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(publicId, (error, result) => {
         if (error) {
-          logger.error("Cloudinary delete error: " + error.message);
           return reject(new APIError("Failed to delete image", 500));
         }
         logger.info(`Image deleted from Cloudinary: ${publicId}`);
@@ -40,9 +35,6 @@ export const deleteFromCloudinary = async (publicId) => {
       });
     });
   } catch (err) {
-    logger.error("Unexpected delete error: " + err.message, {
-      stack: err.stack,
-    });
     throw new APIError("Unexpected error deleting image", 500);
   }
 };

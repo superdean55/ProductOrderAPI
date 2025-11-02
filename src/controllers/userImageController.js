@@ -1,27 +1,39 @@
-import { uploadToCloudinary, deleteFromCloudinary } from "../services/cloudinaryService.js";
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../services/cloudinaryService.js";
 import { APIError } from "../utils/APIError.js";
 import { logger } from "../utils/logger.js";
+import { successResponse } from "../utils/response.js";
+import sequelize from "../config/database.js";
 
 export const uploadUserImage = async (req, res, next) => {
   try {
     if (!req.file) throw new APIError("No image file provided", 400);
 
-    const result = await uploadToCloudinary(req.file.buffer, { folder: "users" });
-
-    req.user.imageId = result.public_id;
-    req.user.imageUrl = result.secure_url;
-    await req.user.save(); 
-
-    logger.info(`User ${req.user.id} uploaded profile image: ${result.public_id}`);
-
-    return res.status(201).json({
-      success: true,
-      message: "Profile image uploaded successfully",
-      data: {
-        imageId: result.public_id,
-        imageUrl: result.secure_url,
-      },
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: "users",
     });
+
+    try {
+      req.user.imageId = result.public_id;
+      req.user.imageUrl = result.secure_url;
+      await req.user.save();
+    } catch (dbError) {
+      await deleteFromCloudinary(result.public_id);
+      throw new APIError("Failed to save user image to database", 500);
+    }
+
+    logger.info(
+      `User ${req.user.id} uploaded profile image: ${result.public_id}`
+    );
+
+    successResponse(
+      res,
+      "Profile image uploaded successfully",
+      { imageId: result.public_id, imageUrl: result.secure_url },
+      201
+    );
   } catch (err) {
     next(err);
   }
@@ -33,58 +45,69 @@ export const updateUserImage = async (req, res, next) => {
 
     const oldPublicId = req.user.imageId || null;
 
-    const result = await uploadToCloudinary(req.file.buffer, { folder: "users" });
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: "users",
+    });
 
-    req.user.imageId = result.public_id;
-    req.user.imageUrl = result.secure_url;
-    await req.user.save();
-
-    logger.info(`User ${req.user.id} updated profile image: ${result.public_id}`);
-
-    if (oldPublicId) {
-      try {
-        await deleteFromCloudinary(oldPublicId);
-        logger.info(`Old image ${oldPublicId} deleted for user ${req.user.id}`);
-      } catch (delErr) {
-        logger.error(`Failed to delete old image ${oldPublicId} for user ${req.user.id}: ${delErr.message}`, { stack: delErr.stack });
-      }
+    try {
+      req.user.imageId = result.public_id;
+      req.user.imageUrl = result.secure_url;
+      await req.user.save();
+    } catch (dbError) {
+      await deleteFromCloudinary(result.public_id);
+      throw new APIError("Failed to update user image to database", 500);
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Profile image updated successfully",
-      data: {
-        imageId: result.public_id,
-        imageUrl: result.secure_url,
-      },
-    });
+    logger.info(
+      `User ${req.user.id} updated profile image: ${result.public_id}`
+    );
+
+    if (oldPublicId) {
+      await deleteFromCloudinary(oldPublicId);
+      logger.info(`Old image ${oldPublicId} deleted for user ${req.user.id}`);
+    }
+
+    successResponse(
+      res,
+      "Profile image updated successfully",
+      { imageId: result.public_id, imageUrl: result.secure_url },
+      200
+    );
   } catch (err) {
     next(err);
   }
 };
 
-
 export const deleteUserImage = async (req, res, next) => {
+  const t = await sequelize.transaction();
+
   try {
     const publicId = req.user.imageId;
     if (!publicId) {
       throw new APIError("No image to delete", 400);
     }
 
-    await deleteFromCloudinary(publicId);
-
     req.user.imageId = null;
     req.user.imageUrl = null;
-    await req.user.save();
+    await req.user.save({ transaction: t });
+
+    try {
+      await deleteFromCloudinary(publicId);
+    } catch (cloudErr) {
+      await t.rollback();
+      throw new APIError(
+        "Failed to delete image from Cloudinary, database rollback performed",
+        500
+      );
+    }
+
+    await t.commit();
 
     logger.info(`User ${req.user.id} deleted profile image: ${publicId}`);
-
-    return res.status(200).json({
-      success: true,
-      message: "Profile image deleted successfully",
-      data: null,
-    });
+    successResponse(res, "Profile image deleted successfully", null, 200);
   } catch (err) {
+
+    if (!t.finished) await t.rollback();
     next(err);
   }
 };
