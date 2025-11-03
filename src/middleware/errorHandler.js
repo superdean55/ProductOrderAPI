@@ -13,9 +13,12 @@ export const errorHandler = (err, req, res, next) => {
 
   logger.error(`${req.method} ${req.url} - ${err.message}`, {
     stack: err.stack,
-    original: err.originalError
-      ? err.originalError.stack || err.originalError.message
-      : undefined,
+    originalStack: err.originalError?.stack,
+    dbErrors: err.originalError?.errors?.map((e) => ({
+      message: e.message,
+      path: e.path,
+      type: e.type,
+    })),
   });
 
   res.status(err.statusCode).json({

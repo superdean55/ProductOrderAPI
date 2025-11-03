@@ -10,3 +10,11 @@ export const validateUniqueEmail = async (userId, email) => {
     throw new APIError("Email is already in use by another user", 400);
   }
 };
+
+export const validateUniqueUsername = async (userId, username) => {
+  const existingUser = await User.findOne({ where: { username } });
+  
+  if (existingUser && String(existingUser.id) !== String(userId)) {
+    throw new APIError("Username is already in use by another user", 400);
+  }
+};
