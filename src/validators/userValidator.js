@@ -1,15 +1,27 @@
-import { body } from "express-validator";
+import Joi from "joi";
 
-
-
-export const updateUserValidator = [
-  body("username")
+export const updateUserSchema = Joi.object({
+  username: Joi.string()
+    .min(3)
     .optional()
-    .isLength({ min: 3 })
-    .withMessage("Username must be at least 3 characters"),
-  body("email").optional().isEmail().withMessage("Invalid email format"),
-  body("password")
+    .messages({
+      "string.min": "Username must be at least 3 characters",
+      "string.base": "Username must be a string"
+    }),
+
+  email: Joi.string()
+    .email()
     .optional()
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters"),
-];
+    .messages({
+      "string.email": "Invalid email format",
+      "string.base": "Email must be a string"
+    }),
+
+  password: Joi.string()
+    .min(6)
+    .optional()
+    .messages({
+      "string.min": "Password must be at least 6 characters",
+      "string.base": "Password must be a string"
+    }),
+});

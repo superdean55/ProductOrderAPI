@@ -5,12 +5,13 @@ import {
   deleteUser,
 } from "../controllers/userController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
-import { updateUserValidator } from "../validators/userValidator.js";
+import { validate } from "../middleware/validate.js";
+import { updateUserSchema } from "../validators/userValidator.js";
 
 const router = express.Router();
 
 router.get("/me", authMiddleware, getUser);
-router.put("/me", authMiddleware, updateUserValidator, updateUser);
+router.put("/me", authMiddleware, validate(updateUserSchema), updateUser);
 router.delete("/me", authMiddleware, deleteUser);
 
 export default router;
