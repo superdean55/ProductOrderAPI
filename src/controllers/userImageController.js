@@ -21,7 +21,7 @@ export const uploadUserImage = async (req, res, next) => {
       await req.user.save();
     } catch (dbError) {
       await deleteFromCloudinary(result.public_id);
-      throw new APIError("Failed to save user image to database", 500);
+      throw new APIError("Failed to save user image to database", 500, null, dbError);
     }
 
     logger.info(
@@ -55,7 +55,7 @@ export const updateUserImage = async (req, res, next) => {
       await req.user.save();
     } catch (dbError) {
       await deleteFromCloudinary(result.public_id);
-      throw new APIError("Failed to update user image to database", 500);
+      throw new APIError("Failed to update user image data to database", 500, null, dbError);
     }
 
     logger.info(
@@ -83,22 +83,18 @@ export const deleteUserImage = async (req, res, next) => {
 
   try {
     const publicId = req.user.imageId;
-    if (!publicId) {
-      throw new APIError("No image to delete", 400);
-    }
-
+    if (!publicId) throw new APIError("No image to delete", 400);
+    
     req.user.imageId = null;
     req.user.imageUrl = null;
-    await req.user.save({ transaction: t });
+    await req.user.save({ transaction: t }).catch((dbError) => {
+      throw new APIError("Failed to delete user image data from database", 500, null, dbError);
+    });
 
     try {
       await deleteFromCloudinary(publicId);
-    } catch (cloudErr) {
+    } catch (err) {
       await t.rollback();
-      throw new APIError(
-        "Failed to delete image from Cloudinary, database rollback performed",
-        500
-      );
     }
 
     await t.commit();

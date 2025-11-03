@@ -39,7 +39,7 @@ export const updateUser = async (req, res, next) => {
     }
 
     await user.save().catch((dbErr) => {
-      throw new APIError("Failed to save user data to the database", 500);
+      throw new APIError("Failed to save user data to the database", 500, null, dbErr);
     });
 
     logger.info(`User [id=${req.user.id}] updated their profile data`);
@@ -61,8 +61,8 @@ export const deleteUser = async (req, res, next) => {
     const user = await User.findByPk(req.user.id);
     if (!user) throw new APIError("User not found", 404);
 
-    await user.destroy().catch(() => {
-      throw new APIError("Failed to delete user data from the database", 500);
+    await user.destroy().catch((dbErr) => {
+      throw new APIError("Failed to delete user data from the database", 500, null, dbErr);
     });
 
     logger.info(`User [id=${req.user.id}] deleted their profile data`);
