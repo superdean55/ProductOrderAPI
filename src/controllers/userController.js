@@ -1,6 +1,7 @@
 import { APIError } from "../utils/APIError.js";
 import { logger } from "../utils/logger.js";
 import { successResponse } from "../utils/response.js";
+import { validateUniqueEmail } from "../helpers/userHelpers.js";
 import db from "../models/index.js";
 
 const { User } = db;
@@ -8,7 +9,7 @@ const { User } = db;
 export const getUser = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ["password"] },
+      attributes: { exclude: ["password", "tokenVersion", "imageId"] },
     });
 
     if (!user) throw new APIError("User not found", 404);
@@ -25,13 +26,20 @@ export const updateUser = async (req, res, next) => {
   try {
     const { username, email } = req.body;
 
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ["password", "tokenVersion", "imageId"] },
+    });
     if (!user) throw new APIError("User not found", 404);
 
     if (username) user.username = username;
-    if (email) user.email = email;
 
-    await user.save().catch(() => {
+    if (email && email !== user.email) {
+      await validateUniqueEmail(user.id, email);
+      user.email = email;
+    }
+
+    await user.save().catch((dbErr) => {
+      console.error("DB Error:", dbErr);
       throw new APIError("Failed to save user data to the database", 500);
     });
 
@@ -40,14 +48,7 @@ export const updateUser = async (req, res, next) => {
       res,
       "User updated successfully",
       {
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          imageUrl: user.imageUrl,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-        },
+        user
       },
       200
     );

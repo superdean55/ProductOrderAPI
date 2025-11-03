@@ -16,12 +16,4 @@ export const updateUserSchema = Joi.object({
       "string.email": "Invalid email format",
       "string.base": "Email must be a string"
     }),
-
-  password: Joi.string()
-    .min(6)
-    .optional()
-    .messages({
-      "string.min": "Password must be at least 6 characters",
-      "string.base": "Password must be a string"
-    }),
 });
