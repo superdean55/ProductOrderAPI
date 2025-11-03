@@ -39,7 +39,6 @@ export const updateUser = async (req, res, next) => {
     }
 
     await user.save().catch((dbErr) => {
-      console.error("DB Error:", dbErr);
       throw new APIError("Failed to save user data to the database", 500);
     });
 
