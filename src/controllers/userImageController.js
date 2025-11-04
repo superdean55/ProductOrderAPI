@@ -11,38 +11,6 @@ export const uploadUserImage = async (req, res, next) => {
   try {
     if (!req.file) throw new APIError("No image file provided", 400);
 
-    const result = await uploadToCloudinary(req.file.buffer, {
-      folder: "users",
-    });
-
-    try {
-      req.user.imageId = result.public_id;
-      req.user.imageUrl = result.secure_url;
-      await req.user.save();
-    } catch (dbError) {
-      await deleteFromCloudinary(result.public_id);
-      throw new APIError("Failed to save user image to database", 500, null, dbError);
-    }
-
-    logger.info(
-      `User ${req.user.id} uploaded profile image: ${result.public_id}`
-    );
-
-    successResponse(
-      res,
-      "Profile image uploaded successfully",
-      { imageId: result.public_id, imageUrl: result.secure_url },
-      201
-    );
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const updateUserImage = async (req, res, next) => {
-  try {
-    if (!req.file) throw new APIError("No image file provided", 400);
-
     const oldPublicId = req.user.imageId || null;
 
     const result = await uploadToCloudinary(req.file.buffer, {

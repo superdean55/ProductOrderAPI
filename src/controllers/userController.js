@@ -6,7 +6,6 @@ import {
   validateUniqueUsername,
 } from "../helpers/userHelpers.js";
 import db from "../models/index.js";
-import { body } from "express-validator";
 
 const { User } = db;
 
