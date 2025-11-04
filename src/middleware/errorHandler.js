@@ -2,6 +2,14 @@ import { logger } from "../utils/logger.js";
 import { APIError } from "../utils/APIError.js";
 
 export const errorHandler = (err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON format",
+      errors: [{ message: err.message }],
+    });
+  }
+  
   if (!(err instanceof APIError)) {
     err = new APIError(
       err.message || "Internal Server Error",

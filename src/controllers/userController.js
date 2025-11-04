@@ -6,6 +6,7 @@ import {
   validateUniqueUsername,
 } from "../helpers/userHelpers.js";
 import db from "../models/index.js";
+import { body } from "express-validator";
 
 const { User } = db;
 
@@ -44,21 +45,19 @@ export const updateUser = async (req, res, next) => {
       await validateUniqueUsername(user.id, username);
       updates.email = email;
     }
-    
+
     if (Object.keys(updates).length === 0) {
       return successResponse(res, "No changes detected", { user }, 200);
     }
 
-    const updatedUser = await user
-      .update(updates)
-      .catch((dbErr) => {
-        throw new APIError(
-          "Failed to save user data to the database",
-          500,
-          null,
-          dbErr
-        );
-      });
+    const updatedUser = await user.update(updates).catch((dbErr) => {
+      throw new APIError(
+        "Failed to save user data to the database",
+        500,
+        null,
+        dbErr
+      );
+    });
 
     logger.info(`User [id=${req.user.id}] updated their profile data`);
     successResponse(

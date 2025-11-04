@@ -16,4 +16,4 @@ export const updateUserSchema = Joi.object({
       "string.email": "Invalid email format",
       "string.base": "Email must be a string"
     }),
-});
+}).unknown(false);
