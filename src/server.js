@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(isValidJsonBody);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/user-images", userImagesRoutes);
+app.use("/api/users", userImagesRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/order-items", orderItemRoutes);
