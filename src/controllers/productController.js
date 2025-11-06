@@ -1,9 +1,12 @@
-import { validationResult } from "express-validator";
 import db from "../models/index.js";
 import { APIError } from "../utils/APIError.js";
 import { successResponse } from "../utils/response.js";
 import { logger } from "../utils/logger.js";
-import { deleteFromCloudinary } from "../services/cloudinaryService.js";
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../services/cloudinaryService.js";
+import validator from "validator";
 
 const { Product } = db;
 
@@ -17,7 +20,7 @@ export const getAllProducts = async (req, res, next) => {
     }
 
     logger.info(`Fetched ${products.length} products from database`);
-    successResponse(res, "Products fetched successfully", products, 200);
+    successResponse(res, "Products fetched successfully", {products}, 200);
   } catch (err) {
     next(
       new APIError("Failed to fetch products from the database", 500, null, err)
@@ -28,8 +31,7 @@ export const getAllProducts = async (req, res, next) => {
 export const getProductById = async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    if (!id || isNaN(id))
+    if (!id || !validator.isUUID(id, 4))
       throw new APIError(
         "Product ID is required and must be a valid number",
         400
@@ -40,7 +42,7 @@ export const getProductById = async (req, res, next) => {
     if (!product) throw new APIError("Product not found", 404);
 
     logger.info(`Fetched product [id=${id}] successfully`);
-    successResponse(res, "Product fetched successfully", product, 200);
+    successResponse(res, "Product fetched successfully", { product }, 200);
   } catch (err) {
     if (err instanceof APIError) return next(err);
     next(
@@ -87,18 +89,17 @@ export const createProduct = async (req, res, next) => {
 
     logger.info(`User [id=${req.user.id}] created Product [id=${product.id}]`);
 
-    successResponse(res, "Product created successfully", product, 201);
+    successResponse(res, "Product created successfully", { product }, 201);
   } catch (err) {
     next(err);
   }
 };
 
-
-
 export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!id || isNaN(id)) throw new APIError("Product ID is required", 400);
+    if (!id || !validator.isUUID(id, 4))
+      throw new APIError("Product ID is required", 400);
 
     const product = await Product.findByPk(id);
     if (!product) throw new APIError("Product not found", 404);
@@ -112,7 +113,7 @@ export const updateProduct = async (req, res, next) => {
     });
 
     logger.info(`Product [id=${id}] updated by user [id=${req.user.id}]`);
-    successResponse(res, "Product updated successfully", product, 200);
+    successResponse(res, "Product updated successfully", { product }, 200);
   } catch (err) {
     next(err);
   }
@@ -123,6 +124,9 @@ export const deleteProduct = async (req, res, next) => {
     const product = await Product.findByPk(req.params.id);
 
     if (!product) return next(new APIError("Product not found", 404));
+
+    if (product.imageId) await deleteFromCloudinary(product.imageId);
+
     await product.destroy();
 
     logger.info(

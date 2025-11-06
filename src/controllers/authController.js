@@ -32,7 +32,23 @@ export const register = async (req, res, next) => {
       { expiresIn: "1d" }
     );
     logger.info(`User [id:${user.id}] registered\nUser email:${user.email}`);
-    successResponse(res, "User registered successfully", { user, token }, 201);
+    successResponse(
+      res,
+      "User registered successfully",
+      {
+        user: {
+          id: user.id,
+          role: user.role,
+          imageUrl: user.imageUrl,
+          username: user.username,
+          email: user.email,
+          updatedAt: user.updatedAt,
+          createdAt: user.createdAt,
+        },
+        token,
+      },
+      201
+    );
   } catch (err) {
     next(err);
   }
@@ -44,7 +60,6 @@ export const login = async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: { email },
-      attributes: { exclude: ["password", "tokenVersion", "imageId"] },
     });
     if (!user) throw new APIError("Invalid credentials", 400);
 
@@ -58,7 +73,23 @@ export const login = async (req, res, next) => {
     );
 
     logger.info(`User logged in: ${email}`);
-    successResponse(res, "Login successful", { user, token }, 200);
+    successResponse(
+      res,
+      "Login successful",
+      {
+        user: {
+          id: user.id,
+          role: user.role,
+          imageUrl: user.imageUrl,
+          username: user.username,
+          email: user.email,
+          updatedAt: user.updatedAt,
+          createdAt: user.createdAt,
+        },
+        token,
+      },
+      200
+    );
   } catch (err) {
     logger.error("Login error:", err);
     next(err);

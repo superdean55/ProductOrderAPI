@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { isAdminMiddleware } from "../middleware/isAdminMiddleware.js";
 import {
@@ -14,6 +15,7 @@ import {
 } from "../validators/productValidator.js";
 import { validate } from "../middleware/validate.js";
 import { isValidJsonBody } from "../middleware/isValidJsonBody.js";
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 
@@ -23,6 +25,7 @@ router.post(
   "/",
   isValidJsonBody,
   authMiddleware,
+  upload.single("image"),
   isAdminMiddleware,
   validate(createProductSchema),
   createProduct
