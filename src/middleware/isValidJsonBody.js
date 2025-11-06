@@ -1,9 +1,13 @@
 import { APIError } from "../utils/APIError.js";
 
 export const isValidJsonBody = (req, res, next) => {
-  if (req.is("multipart/form-data")) {
+
+  const contentType = req.get('Content-Type'); 
+ 
+  if (contentType && contentType.includes("multipart/form-data")) {
     return next();
   }
+
   const methodsWithBody = ["POST", "PUT", "PATCH"];
   if (methodsWithBody.includes(req.method)) {
     if (!req.is("application/json")) {

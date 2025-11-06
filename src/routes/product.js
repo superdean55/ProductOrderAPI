@@ -9,9 +9,11 @@ import {
   deleteProduct,
 } from "../controllers/productController.js";
 import {
-  createProductValidation,
-  updateProductValidation,
+  createProductSchema,
+  updateProductSchema,
 } from "../validators/productValidator.js";
+import { validate } from "../middleware/validate.js";
+import { isValidJsonBody } from "../middleware/isValidJsonBody.js";
 
 const router = express.Router();
 
@@ -19,16 +21,18 @@ router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 router.post(
   "/",
+  isValidJsonBody,
   authMiddleware,
   isAdminMiddleware,
-  createProductValidation,
+  validate(createProductSchema),
   createProduct
 );
 router.put(
   "/:id",
+  isValidJsonBody,
   authMiddleware,
   isAdminMiddleware,
-  updateProductValidation,
+  validate(updateProductSchema),
   updateProduct
 );
 router.delete("/:id", authMiddleware, isAdminMiddleware, deleteProduct);

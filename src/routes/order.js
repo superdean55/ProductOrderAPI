@@ -12,14 +12,22 @@ import {
   createOrderValidation,
   updateOrderStatusValidation,
 } from "../validators/orderValidator.js";
+import { isValidJsonBody } from "../middleware/isValidJsonBody.js";
 
 const router = express.Router();
 
-router.post("/", authMiddleware, createOrderValidation, createOrder);
+router.post(
+  "/",
+  isValidJsonBody,
+  authMiddleware,
+  createOrderValidation,
+  createOrder
+);
 router.get("/", authMiddleware, isAdminMiddleware, getAllOrders);
 router.get("/my-orders", authMiddleware, getUserOrders);
 router.put(
   "/:id/status",
+  isValidJsonBody,
   authMiddleware,
   isAdminMiddleware,
   updateOrderStatusValidation,

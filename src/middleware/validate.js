@@ -9,7 +9,7 @@ export const validate = (schema) => (req, res, next) => {
       message: err.message
     }));
 
-    return next(new APIError("Validation failed", 400, validationErrors));
+    return next(new APIError("Validation failed", 400, validationErrors, error));
   }
 
   next();

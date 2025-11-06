@@ -7,13 +7,13 @@ import productRoutes from "./routes/product.js";
 import orderRoutes from "./routes/order.js";
 import orderItemRoutes from "./routes/orderItem.js";
 import userImagesRoutes from "./routes/userImageRoutes.js";
-import { isValidJsonBody } from "./middleware/isValidJsonBody.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 app.use(cors());
+
 app.use(express.json());
-app.use(isValidJsonBody);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users", userImagesRoutes);
