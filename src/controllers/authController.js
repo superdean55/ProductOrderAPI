@@ -11,7 +11,10 @@ export const register = async (req, res, next) => {
   const { username, email, password } = req.body;
 
   try {
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({
+      where: { email },
+      attributes: { exclude: ["password", "tokenVersion", "imageId"] },
+    });
     if (existingUser) {
       throw new APIError("Email already in use", 400);
     }
@@ -39,7 +42,10 @@ export const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+      attributes: { exclude: ["password", "tokenVersion", "imageId"] },
+    });
     if (!user) throw new APIError("Invalid credentials", 400);
 
     const isMatch = await bcrypt.compare(password, user.password);
