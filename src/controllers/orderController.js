@@ -1,44 +1,68 @@
 import { validationResult } from "express-validator";
 import db from "../models/index.js";
-const { Product, Order, OrderItem } = db;
+import { successResponse, succrssResponse } from "../utils/response.js";
+import { APIError } from "../utils/APIError.js";
+import { logger } from "../utils/logger.js";
 
+const { Product, Order, OrderItem, sequelize } = db;
 
-export const createOrder = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
+export const createOrder = async (req, res, next) => {
   const { items } = req.body;
-  const userId = req.userId;
+  const userId = req.user.id;
+
+  const transaction = await sequelize.transaction();
 
   try {
-    if (!items || items.length === 0) {
-      return res.status(400).json({ message: "Order must contain at least one product" });
-    }
+    
+    if (!items || items.length === 0)
+      throw new APIError("Order must contain at least one product", 400);
+
+    const productIds = items.map((item) => item.productId);
+    const products = await Product.findAll({
+      where: { id: productIds },
+      transaction,
+    });
+
+    const productMap = new Map(products.map((product) => [product.id, product]));
 
     let totalPrice = 0;
+
     for (const item of items) {
-      const product = await Product.findByPk(item.productId);
-      if (!product) {
-        return res.status(404).json({ message: `Product not found: ${item.productId}` });
-      }
+      const product = productMap.get(item.productId);
+      if (!product)
+        throw new APIError(`Product not found: ${item.productId}`, 404);
+      if (item.quantity <= 0)
+        throw new APIError("Quantity must be at least 1", 400);
       totalPrice += parseFloat(product.price) * item.quantity;
     }
 
-    const order = await Order.create({ userId, totalPrice, status: "PENDING" });
+    const order = await Order.create(
+      { userId, totalPrice, status: "PENDING" },
+      { transaction }
+    );
 
-    for (const item of items) {
-      const product = await Product.findByPk(item.productId);
-      await OrderItem.create({
+    const orderItemsData = items.map((item) => {
+      const product = productMap.get(item.productId);
+      return {
         orderId: order.id,
         productId: item.productId,
         quantity: item.quantity,
         unitPrice: product.price,
-      });
-    }
+      };
+    });
 
-    res.status(201).json({ message: "Order created successfully", order });
+    await OrderItem.bulkCreate(orderItemsData, { transaction });
+
+    await transaction.commit();
+
+    logger.info(
+      `Order [id=${order.id}] created successfully for user [id=${userId}]`
+    );
+
+    successResponse(res, "Order created successfully", { order, items }, 201);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    await transaction.rollback();
+    next(err);
   }
 };
 
