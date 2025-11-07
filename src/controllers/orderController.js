@@ -34,6 +34,11 @@ export const createOrder = async (req, res, next) => {
         throw new APIError(`Product not found: ${item.productId}`, 404);
       if (item.quantity <= 0)
         throw new APIError("Quantity must be at least 1", 400);
+      if (item.quantity > product.stock)
+        throw new APIError(
+          `Not enough stock for product ${product.name}. Available: ${product.stock}, requested: ${item.quantity}`,
+          400
+        );
       totalPrice += parseFloat(product.price) * item.quantity;
     }
 
