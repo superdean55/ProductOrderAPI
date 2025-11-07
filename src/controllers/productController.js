@@ -33,7 +33,7 @@ export const getProductById = async (req, res, next) => {
     const { id } = req.params;
     if (!id || !validator.isUUID(id, 4))
       throw new APIError(
-        "Product ID is required and must be a valid number",
+        "Product ID is required",
         400
       );
 
@@ -121,7 +121,11 @@ export const updateProduct = async (req, res, next) => {
 
 export const deleteProduct = async (req, res, next) => {
   try {
-    const product = await Product.findByPk(req.params.id);
+    const { id } = req.params;
+    if (!id || !validator.isUUID(id, 4))
+      throw new APIError("Product ID is required", 400);
+
+    const product = await Product.findByPk(id);
 
     if (!product) return next(new APIError("Product not found", 404));
 
