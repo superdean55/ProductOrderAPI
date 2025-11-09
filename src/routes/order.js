@@ -9,9 +9,10 @@ import {
   deleteOrder,
 } from "../controllers/orderController.js";
 import {
-  createOrderValidation,
-  updateOrderStatusValidation,
+  createOrderSchema,
+  updateOrderStatusSchema,
 } from "../validators/orderValidator.js";
+import { validate } from "../middleware/validate.js";
 import { isValidJsonBody } from "../middleware/isValidJsonBody.js";
 
 const router = express.Router();
@@ -20,7 +21,7 @@ router.post(
   "/",
   isValidJsonBody,
   authMiddleware,
-  createOrderValidation,
+  validate(createOrderSchema),
   createOrder
 );
 router.get("/", authMiddleware, isAdminMiddleware, getAllOrders);
@@ -30,7 +31,7 @@ router.put(
   isValidJsonBody,
   authMiddleware,
   isAdminMiddleware,
-  updateOrderStatusValidation,
+  validate(updateOrderStatusSchema),
   updateOrderStatus
 );
 router.delete("/:id", authMiddleware, deleteOrder);

@@ -4,6 +4,7 @@ import db from "./models/index.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
 import productRoutes from "./routes/product.js";
+import productImageRoutes from "./routes/productImageRoutes.js"
 import orderRoutes from "./routes/order.js";
 import orderItemRoutes from "./routes/orderItem.js";
 import userImagesRoutes from "./routes/userImageRoutes.js";
@@ -18,6 +19,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users", userImagesRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/prosucts", productImageRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/order-items", orderItemRoutes);
 

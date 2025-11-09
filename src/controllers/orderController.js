@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-import { successResponse, succrssResponse } from "../utils/response.js";
+import { successResponse } from "../utils/response.js";
 import { APIError } from "../utils/APIError.js";
 import { logger } from "../utils/logger.js";
 import validator from "validator";
@@ -92,7 +92,7 @@ export const getAllOrders = async (req, res, next) => {
 export const getUserOrders = async (req, res, next) => {
   try {
     const orders = await Order.findAll({
-      where: { userId: req.userId },
+      where: { userId: req.user.id },
       include: [OrderItem],
       order: [["createdAt", "DESC"]],
     });
