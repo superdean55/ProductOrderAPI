@@ -6,7 +6,7 @@ import {
   validateUniqueUsername,
 } from "../helpers/userHelpers.js";
 import db from "../models/index.js";
-
+import { UserDTO } from "../dtos/user.dto.js";
 const { User } = db;
 
 export const getUser = async (req, res, next) => {
@@ -19,7 +19,8 @@ export const getUser = async (req, res, next) => {
 
     logger.info(`User [id=${req.user.id}] retrieved their profile data`);
 
-    successResponse(res, "User data retrieved successfully", { user }, 200);
+    const userDto = UserDTO.fromModel(user)
+    successResponse(res, "User data retrieved successfully", { user: userDto }, 200);
   } catch (err) {
     next(err);
   }
@@ -59,11 +60,12 @@ export const updateUser = async (req, res, next) => {
     });
 
     logger.info(`User [id=${req.user.id}] updated their profile data`);
+    const userDto = UserDTO.fromModel(updatedUser)
     successResponse(
       res,
       "User updated successfully",
       {
-        user: updatedUser,
+        user: userDto,
       },
       200
     );

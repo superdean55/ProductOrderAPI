@@ -4,6 +4,7 @@ import db from "../models/index.js";
 import { logger } from "../utils/logger.js";
 import { APIError } from "../utils/APIError.js";
 import { successResponse } from "../utils/response.js";
+import { UserDTO } from "../dtos/user.dto.js";
 
 const { User } = db;
 
@@ -31,20 +32,14 @@ export const register = async (req, res, next) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
     logger.info(`User [id:${user.id}] registered\nUser email:${user.email}`);
+    const userDto = UserDTO.fromModel(user);
     successResponse(
       res,
       "User registered successfully",
       {
-        user: {
-          id: user.id,
-          role: user.role,
-          imageUrl: user.imageUrl,
-          username: user.username,
-          email: user.email,
-          updatedAt: user.updatedAt,
-          createdAt: user.createdAt,
-        },
+        user: userDto,
         token,
       },
       201
@@ -73,19 +68,12 @@ export const login = async (req, res, next) => {
     );
 
     logger.info(`User logged in: ${email}`);
+    const userDto = UserDTO.fromModel(user)
     successResponse(
       res,
       "Login successful",
       {
-        user: {
-          id: user.id,
-          role: user.role,
-          imageUrl: user.imageUrl,
-          username: user.username,
-          email: user.email,
-          updatedAt: user.updatedAt,
-          createdAt: user.createdAt,
-        },
+        user: userDto,
         token,
       },
       200
