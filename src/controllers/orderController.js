@@ -133,6 +133,42 @@ export const getUserOrders = async (req, res, next) => {
   }
 };
 
+export const getUserOrderById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !validator.isUUID(id, 4))
+      throw new APIError("Valid order ID is required", 400);
+
+    const order = await Order.findOne({
+      where: { id, userId: req.user.id },
+      include: [{ model: OrderItem, as: "items" }],
+    });
+
+    if (!order)
+      throw new APIError(
+        "Order not found or does not belong to the current user",
+        404
+      );
+
+    logger.info(
+      `Fetched order [id=${id}] for user [id=${req.user.id}] successfully`
+    );
+    
+    const orderDTO = OrderDetailDTO.fromModel(order);
+    successResponse(res, "Order fetched successfully", { order: orderDTO }, 200);
+  } catch (err) {
+    next(
+      new APIError(
+        "Failed to fetch user order from the database",
+        500,
+        null,
+        err
+      )
+    );
+  }
+};
+
 export const updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;

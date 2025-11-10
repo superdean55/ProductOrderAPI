@@ -7,12 +7,12 @@ export class OrderDetailDTO {
     this.createdAt = order.createdAt;
     this.updatedAt = order.updatedAt;
 
-    this.items = Array.isArray(order.OrderItems)
-      ? order.OrderItems.map(item => ({
+    this.items = Array.isArray(order.items)
+      ? order.items.map((item) => ({
           id: item.id,
           productId: item.productId,
           quantity: item.quantity,
-          price: item.price,
+          unitPrice: item.unitPrice, 
         }))
       : [];
   }

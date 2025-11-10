@@ -5,6 +5,7 @@ import {
   createOrder,
   getAllOrders,
   getUserOrders,
+  getUserOrderById,
   updateOrderStatus,
   deleteOrder,
 } from "../controllers/orderController.js";
@@ -26,6 +27,7 @@ router.post(
 );
 router.get("/", authMiddleware, isAdminMiddleware, getAllOrders);
 router.get("/my-orders", authMiddleware, getUserOrders);
+router.get("/my-order/:id", authMiddleware, getUserOrderById);
 router.put(
   "/:id/status",
   isValidJsonBody,
