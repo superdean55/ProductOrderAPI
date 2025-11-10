@@ -3,16 +3,16 @@ import { successResponse } from "../utils/response.js";
 import { APIError } from "../utils/APIError.js";
 import { logger } from "../utils/logger.js";
 import validator from "validator";
+import { OrderSummaryDTO } from "../dtos/orderSummaryDto.js";
+import { OrderDetailDTO } from "../dtos/orderDetailDto.js";
 
 const { Product, Order, OrderItem, sequelize } = db;
 
 export const createOrder = async (req, res, next) => {
-  const { items } = req.body;
-  const userId = req.user.id;
-
   const transaction = await sequelize.transaction();
-
   try {
+    const { items } = req.body;
+    const userId = req.user.id;
     if (!items || items.length === 0)
       throw new APIError("Order must contain at least one product", 400);
 
@@ -59,13 +59,24 @@ export const createOrder = async (req, res, next) => {
 
     await OrderItem.bulkCreate(orderItemsData, { transaction });
 
+    const orderWithItems = await Order.findByPk(order.id, {
+      include: [{ model: OrderItem, as: "items" }],
+      transaction,
+    });
+
     await transaction.commit();
 
     logger.info(
       `Order [id=${order.id}] created successfully for user [id=${userId}]`
     );
 
-    successResponse(res, "Order created successfully", { order, items }, 201);
+    const orderDto = OrderDetailDTO.fromModel(orderWithItems);
+    successResponse(
+      res,
+      "Order created successfully",
+      { order: orderDto },
+      201
+    );
   } catch (err) {
     await transaction.rollback();
     next(err);
@@ -75,13 +86,18 @@ export const createOrder = async (req, res, next) => {
 export const getAllOrders = async (req, res, next) => {
   try {
     const orders = await Order.findAll({
-      include: [OrderItem],
       order: [["createdAt", "DESC"]],
     });
 
     logger.info(`Fetched all orders successfully by user [id=${req.user.id}]`);
 
-    successResponse(res, "Orders fetched successfully", { orders }, 200);
+    const ordersDTO = orders.map(OrderSummaryDTO.fromModel);
+    successResponse(
+      res,
+      "Orders fetched successfully",
+      { orders: ordersDTO },
+      200
+    );
   } catch (err) {
     next(
       new APIError("Failed to fetch orders from the database", 500, null, err)
@@ -93,13 +109,18 @@ export const getUserOrders = async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: { userId: req.user.id },
-      include: [OrderItem],
       order: [["createdAt", "DESC"]],
     });
 
     logger.info(`Fetched orders for user [id=${req.userId}] successfully`);
 
-    successResponse(res, "User orders fetched successfully", { orders }, 200);
+    const ordersDTO = orders.map(OrderSummaryDTO.fromModel);
+    successResponse(
+      res,
+      "User orders fetched successfully",
+      { orders: ordersDTO },
+      200
+    );
   } catch (err) {
     next(
       new APIError(
@@ -120,7 +141,9 @@ export const updateOrderStatus = async (req, res, next) => {
     if (!id || !validator.isUUID(id, 4))
       throw new APIError("Order ID is required", 400);
 
-    const order = await Order.findByPk(id);
+    const order = await Order.findByPk(id, {
+      include: [{ model: OrderItem, as: "items" }],
+    });
     if (!order) throw new APIError("Order not found", 404);
 
     order.status = status;
@@ -130,7 +153,13 @@ export const updateOrderStatus = async (req, res, next) => {
       `Order [id=${id}] status updated to '${status}' by user [id=${req.user.id}]`
     );
 
-    successResponse(res, "Order status updated successfully", { order }, 200);
+    const orderDto = OrderDetailDTO.fromModel(order);
+    successResponse(
+      res,
+      "Order status updated successfully",
+      { order: orderDto },
+      200
+    );
   } catch (err) {
     next(new APIError("Failed to update order status", 500, null, err));
   }

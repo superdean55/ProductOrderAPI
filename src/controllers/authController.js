@@ -4,7 +4,7 @@ import db from "../models/index.js";
 import { logger } from "../utils/logger.js";
 import { APIError } from "../utils/APIError.js";
 import { successResponse } from "../utils/response.js";
-import { UserDTO } from "../dtos/user.dto.js";
+import { UserDTO } from "../dtos/userDto.js";
 
 const { User } = db;
 
@@ -68,7 +68,7 @@ export const login = async (req, res, next) => {
     );
 
     logger.info(`User logged in: ${email}`);
-    const userDto = UserDTO.fromModel(user)
+    const userDto = UserDTO.fromModel(user);
     successResponse(
       res,
       "Login successful",

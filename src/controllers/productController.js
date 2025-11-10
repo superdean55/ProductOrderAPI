@@ -7,6 +7,7 @@ import {
   deleteFromCloudinary,
 } from "../services/cloudinaryService.js";
 import validator from "validator";
+import { ProductDTO } from "../dtos/productDto.js";
 
 const { Product } = db;
 
@@ -20,7 +21,14 @@ export const getAllProducts = async (req, res, next) => {
     }
 
     logger.info(`Fetched ${products.length} products from database`);
-    successResponse(res, "Products fetched successfully", {products}, 200);
+
+    const productsDTO = products.map(ProductDTO.fromModel);
+    successResponse(
+      res,
+      "Products fetched successfully",
+      { products: productsDTO },
+      200
+    );
   } catch (err) {
     next(
       new APIError("Failed to fetch products from the database", 500, null, err)
@@ -32,17 +40,21 @@ export const getProductById = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!id || !validator.isUUID(id, 4))
-      throw new APIError(
-        "Product ID is required",
-        400
-      );
+      throw new APIError("Product ID is required", 400);
 
     const product = await Product.findByPk(id);
 
     if (!product) throw new APIError("Product not found", 404);
 
     logger.info(`Fetched product [id=${id}] successfully`);
-    successResponse(res, "Product fetched successfully", { product }, 200);
+
+    const productDto = ProductDTO.fromModel(product);
+    successResponse(
+      res,
+      "Product fetched successfully",
+      { product: productDto },
+      200
+    );
   } catch (err) {
     if (err instanceof APIError) return next(err);
     next(
@@ -89,7 +101,13 @@ export const createProduct = async (req, res, next) => {
 
     logger.info(`User [id=${req.user.id}] created Product [id=${product.id}]`);
 
-    successResponse(res, "Product created successfully", { product }, 201);
+    const productDto = ProductDTO.fromModel(product);
+    successResponse(
+      res,
+      "Product created successfully",
+      { product: productDto },
+      201
+    );
   } catch (err) {
     next(err);
   }
@@ -113,7 +131,14 @@ export const updateProduct = async (req, res, next) => {
     });
 
     logger.info(`Product [id=${id}] updated by user [id=${req.user.id}]`);
-    successResponse(res, "Product updated successfully", { product }, 200);
+
+    const productDto = ProductDTO.fromModel(product);
+    successResponse(
+      res,
+      "Product updated successfully",
+      { product: productDto },
+      200
+    );
   } catch (err) {
     next(err);
   }
