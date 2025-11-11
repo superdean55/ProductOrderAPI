@@ -9,6 +9,7 @@ import orderRoutes from "./routes/order.js";
 import orderItemRoutes from "./routes/orderItem.js";
 import userImagesRoutes from "./routes/userImageRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { notFoundHandler } from "./middleware/notFoundHandler.js";
 
 const app = express();
 app.use(cors());
@@ -22,11 +23,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/prosucts", productImageRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/order-items", orderItemRoutes);
-
-app.get("/", (req, res) => {
-  res.json({ message: "E-commerce API is running!" });
-});
-
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 try {
