@@ -5,6 +5,10 @@ import { logger } from "../utils/logger.js";
 import { APIError } from "../utils/APIError.js";
 import { successResponse } from "../utils/response.js";
 import { UserDTO } from "../dtos/userDto.js";
+import {
+  validateUniqueEmail,
+  validateUniqueUsername,
+} from "../helpers/authHelpers.js";
 
 const { User } = db;
 
@@ -12,20 +16,17 @@ export const register = async (req, res, next) => {
   const { username, email, password } = req.body;
 
   try {
-    const existingUser = await User.findOne({
-      where: { email },
-      attributes: { exclude: ["password", "tokenVersion", "imageId"] },
-    });
-    if (existingUser) {
-      throw new APIError("Email already in use", 400);
-    }
+    await validateUniqueEmail(email);
+    await validateUniqueUsername(username);
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       username,
       email,
       password: hashedPassword,
     });
+    logger.info(`User [id:${user.id}] registered\nUser email:${user.email}`);
 
     const token = jwt.sign(
       { id: user.id, tokenVersion: user.tokenVersion },
@@ -33,7 +34,6 @@ export const register = async (req, res, next) => {
       { expiresIn: "1d" }
     );
 
-    logger.info(`User [id:${user.id}] registered\nUser email:${user.email}`);
     const userDto = UserDTO.fromModel(user);
     successResponse(
       res,
