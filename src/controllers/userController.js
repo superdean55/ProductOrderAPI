@@ -5,6 +5,7 @@ import {
   validateUniqueEmail,
   validateUniqueUsername,
 } from "../helpers/userHelpers.js";
+import validator from "validator";
 import db from "../models/index.js";
 import { UserDTO } from "../dtos/userDto.js";
 const { User } = db;
@@ -95,6 +96,32 @@ export const deleteUser = async (req, res, next) => {
 
     logger.info(`User [id=${req.user.id}] deleted their profile data`);
     successResponse(res, "User deleted successfully", null, 200);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const restoreUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !validator.isUUID(id, 4))
+      throw new APIError("User ID is required", 400);
+
+    const user = await User.findByPk(id, { paranoid: false });
+    if (!user) throw new APIError("User not found", 404);
+
+    if (user.deletedAt === null)
+      throw new APIError(
+        "The user cannot be recovered because it is active",
+        400
+      );
+    await user.restore();
+
+    logger.info(`User [id=${user.id}] has been restored`);
+    
+    const userDto = UserDTO.fromModel(user);
+    successResponse(res, "User restored successfully", { user: userDto }, 200);
   } catch (err) {
     next(err);
   }

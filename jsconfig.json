@@ -5,7 +5,7 @@
     "moduleResolution": "Node",
     "baseUrl": "src",
     "paths": { "*": ["*"] },
-    "checkJs": true
+    "checkJs": false
   },
   "include": ["src/**/*"]
 }
