@@ -8,6 +8,7 @@ import { UserDTO } from "../dtos/userDto.js";
 import {
   validateUniqueEmail,
   validateUniqueUsername,
+  getToken,
 } from "../helpers/authHelpers.js";
 
 const { User } = db;
@@ -28,11 +29,7 @@ export const register = async (req, res, next) => {
     });
     logger.info(`User [id:${user.id}] registered\nUser email:${user.email}`);
 
-    const token = jwt.sign(
-      { id: user.id, tokenVersion: user.tokenVersion },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = getToken(user);
 
     const userDto = UserDTO.fromModel(user);
     successResponse(
@@ -61,11 +58,7 @@ export const login = async (req, res, next) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new APIError("Invalid credentials", 400);
 
-    const token = jwt.sign(
-      { id: user.id, tokenVersion: user.tokenVersion },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = getToken(user);
 
     logger.info(`User logged in: ${email}`);
     const userDto = UserDTO.fromModel(user);

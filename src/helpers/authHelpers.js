@@ -24,3 +24,15 @@ export const validateUniqueUsername = async (username) => {
     throw new APIError("Username is already in use", 400);
   }
 };
+
+export const getToken = (user) => {
+  return jwt.sign(
+    {
+      id: user.id,
+      tokenVersion: user.tokenVersion,
+      role: user.role, 
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+};
