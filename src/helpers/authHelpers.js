@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import jwt from "jsonwebtoken";
 import { APIError } from "../utils/APIError.js";
 
 const { User } = db;

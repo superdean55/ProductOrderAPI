@@ -11,8 +11,23 @@ import userImagesRoutes from "./routes/userImageRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 
+const allowedOrigins = [
+    'http://localhost:5173', 
+    'http://127.0.0.1:5173',
+    'http://192.168.1.204:5173' 
+];
 const app = express();
-app.use(cors());
+
+app.use(cors({ 
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'), false);
+        }
+    },
+    credentials: true
+}));
 
 app.use(express.json());
 
@@ -37,4 +52,4 @@ try {
 }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0',() => console.log(`🚀 Server running on port ${PORT}`));

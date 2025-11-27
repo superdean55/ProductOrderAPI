@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import db from "../models/index.js";
 import { logger } from "../utils/logger.js";
 import { APIError } from "../utils/APIError.js";
