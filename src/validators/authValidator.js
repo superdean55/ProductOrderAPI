@@ -20,3 +20,13 @@ export const loginSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
 }).unknown(false);
+
+export const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().min(6).required().messages({
+    "any.required": "Current password is required",
+  }),
+  newPassword: Joi.string().min(6).required().messages({
+    "string.min": "Password must be at least 6 characters",
+    "any.required": "New password is required",
+  }),
+}).unknown(false);

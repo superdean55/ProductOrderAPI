@@ -3,11 +3,13 @@ import {
   getUser,
   updateUser,
   deleteUser,
-  restoreUser
+  restoreUser,
 } from "../controllers/userController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
-import { updateUserSchema } from "../validators/userValidator.js";
+import {
+  updateUserSchema,
+} from "../validators/userValidator.js";
 import { isValidJsonBody } from "../middleware/isValidJsonBody.js";
 import { isAdminMiddleware } from "../middleware/isAdminMiddleware.js";
 const router = express.Router();

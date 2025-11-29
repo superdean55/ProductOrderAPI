@@ -10,7 +10,9 @@ export const authMiddleware = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await db.User.findByPk(decoded.id);
+    const user = await db.User.findByPk(decoded.id, {
+      attributes: { exclude: ["password"] },
+    });
 
     if (!user) return next(new APIError("User not found", 401));
 

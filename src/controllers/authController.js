@@ -91,3 +91,35 @@ export const logout = async (req, res, next) => {
     next(err);
   }
 };
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id; 
+
+    if (!userId) {
+      throw new APIError("Unauthorized access.", 401);
+    }
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw new APIError("User not found.", 404);
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      throw new APIError("Current password is incorrect.", 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await user.update({ password: hashedPassword });
+
+    logger.info(`Password changed for user: ${user.id}`);
+
+    return successResponse(res, "Password changed successfully.", null);
+  } catch (err) {
+    next(err);
+  }
+};
