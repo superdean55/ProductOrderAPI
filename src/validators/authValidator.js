@@ -30,3 +30,10 @@ export const changePasswordSchema = Joi.object({
     "any.required": "New password is required",
   }),
 }).unknown(false);
+
+export const changeEmailSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    "string.email": "Invalid email format",
+    "any.required": "Email is required",
+  }),
+}).unknown(false);

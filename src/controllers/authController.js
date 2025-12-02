@@ -95,7 +95,7 @@ export const logout = async (req, res, next) => {
 export const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.user.id; 
+    const userId = req.user.id;
 
     if (!userId) {
       throw new APIError("Unauthorized access.", 401);
@@ -119,6 +119,29 @@ export const changePassword = async (req, res, next) => {
     logger.info(`Password changed for user: ${user.id}`);
 
     return successResponse(res, "Password changed successfully.", null);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const changeEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw new APIError("User not found.", 404);
+    }
+
+    await validateUniqueEmail(email);
+
+    const updatedUser = await user.update({ email });
+
+    logger.info(`Email changed for user: ${user.id}`);
+
+    return successResponse(res, "Email changed successfully.", {email: updatedUser.email});
   } catch (err) {
     next(err);
   }

@@ -1,8 +1,8 @@
 import express from "express";
-import { register, login, logout, changePassword } from "../controllers/authController.js";
+import { register, login, logout, changePassword, changeEmail } from "../controllers/authController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
-import { registerSchema, loginSchema, changePasswordSchema } from "../validators/authValidator.js";
+import { registerSchema, loginSchema, changePasswordSchema, changeEmailSchema } from "../validators/authValidator.js";
 import { isValidJsonBody } from "../middleware/isValidJsonBody.js";
 
 
@@ -17,6 +17,13 @@ router.put(
   authMiddleware,
   validate(changePasswordSchema),
   changePassword
+);
+router.put(
+  "/change-email",
+  isValidJsonBody,
+  authMiddleware,
+  validate(changeEmailSchema),
+  changeEmail
 );
 
 export default router;
