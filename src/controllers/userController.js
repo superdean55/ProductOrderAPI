@@ -34,36 +34,31 @@ export const getUser = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
   try {
-    const { username, email } = req.body;
+    const { firstName, lastName, phoneNumber, dateOfBirth } = req.body;
 
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ["password", "tokenVersion", "imageId"] },
     });
     if (!user) throw new APIError("User not found", 404);
 
-    const updates = {};
+    let dob;
+    if (dateOfBirth !== undefined) {
+      dob = new Date(dateOfBirth);
+      if (isNaN(dob.getTime())) {
+        throw new APIError("Invalid dateOfBirth format", 400);
+      }
+    }
 
-    if (email && email !== user.email) {
-      await validateUniqueEmail(user.id, email);
-      updates.username = username;
-    }
-    if (username && username !== user.username) {
-      await validateUniqueUsername(user.id, username);
-      updates.email = email;
-    }
+    const updates = {};
+    if (firstName !== undefined) updates.firstName = firstName;
+    if (lastName !== undefined) updates.lastName = lastName;
+    if (phoneNumber !== undefined) updates.phoneNumber = phoneNumber;
+    if (dob !== undefined) updates.dateOfBirth = dob;
 
     if (Object.keys(updates).length === 0) {
       return successResponse(res, "No changes detected", { user }, 200);
     }
-
-    const updatedUser = await user.update(updates).catch((dbErr) => {
-      throw new APIError(
-        "Failed to save user data to the database",
-        500,
-        null,
-        dbErr
-      );
-    });
+    const updatedUser = await user.update(updates);
 
     logger.info(`User [id=${req.user.id}] updated their profile data`);
     const userDto = UserDTO.fromModel(updatedUser);
@@ -119,7 +114,7 @@ export const restoreUser = async (req, res, next) => {
     await user.restore();
 
     logger.info(`User [id=${user.id}] has been restored`);
-    
+
     const userDto = UserDTO.fromModel(user);
     successResponse(res, "User restored successfully", { user: userDto }, 200);
   } catch (err) {
